@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Max Battle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0c0c0c;
+            color: #e0e0e0;
+        }
+        
+        .hero-section {
+            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('https://images.hdqwalls.com/wallpapers/garena-free-fire-rampage-4k-i8.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .purple-gradient-text {
+            background: linear-gradient(90deg, #a78bfa, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .purple-gradient-bg {
+            background-image: linear-gradient(to right, #8b5cf6, #6d28d9);
+            transition: all 0.3s ease;
+        }
+
+        .purple-gradient-bg:hover {
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* Scroll Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s, transform 0.8s;
+        }
+
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Glowing effect for buttons */
+        @keyframes glowing {
+            0% { box-shadow: 0 0 5px #a78bfa; }
+            50% { box-shadow: 0 0 20px #8b5cf6; }
+            100% { box-shadow: 0 0 5px #a78bfa; }
+        }
+
+        .glowing-btn {
+            animation: glowing 3s infinite;
+        }
+        
+        /* Chatbot Specific Styles */
+        #chat-messages::-webkit-scrollbar { width: 8px; }
+        #chat-messages::-webkit-scrollbar-track { background: transparent; }
+        #chat-messages::-webkit-scrollbar-thumb { background-color: #444; border-radius: 20px; }
+        .thinking-dot { animation: bounce 1.4s infinite ease-in-out both; }
+        .thinking-dot:nth-child(1) { animation-delay: -0.32s; }
+        .thinking-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+        .prose { color: #e0e0e0; }
+        .prose strong { color: #ffffff; }
+        .prose a { color: #a78bfa; }
+        .prose pre { background-color: #000000; color: #d1d5db; padding: 1rem; border-radius: 0.5rem; border: 1px solid #333; overflow-x: auto; position: relative; }
+        .prose code { background-color: rgba(167, 139, 250, 0.1); color: #a78bfa; padding: 0.2em 0.4em; margin: 0; font-size: 85%; border-radius: 3px; }
+        .prose pre code { background-color: transparent; padding: 0; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background-color: #333; color: #ccc; border: 1px solid #555; border-radius: 0.375rem; padding: 0.25rem; opacity: 0; transition: opacity 0.2s; }
+        .prose:hover .copy-btn, pre:hover .copy-btn { opacity: 1; }
+        #sidebar { transition: transform 0.3s ease-in-out; }
+        @keyframes pop-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .user-message { animation: pop-in 0.2s ease-out; }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <!-- Landing Page View -->
+    <div id="landing-page">
+        <header class="bg-black/80 backdrop-blur-sm fixed w-full top-0 z-50">
+            <nav class="container mx-auto px-4 sm:px-6 py-2 flex justify-between items-center">
+                <a href="#" class="flex items-center space-x-3">
+                    <img src="images/Logo2.jpg" alt="Free Fire Battle Logo" class="h-12 w-auto">
+                    <span class="text-xl sm:text-2xl font-bold text-white  sm:block">Max <span class="purple-gradient-text">Battle</span></span>
+                </a>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#" class="text-gray-300 hover:text-violet-400 font-semibold transition-colors">Home</a>
+                    <a href="#about" class="text-gray-300 hover:text-violet-400 font-semibold transition-colors">About Us</a>
+                    <a 
+                href="https://www.dropbox.com/scl/fi/p3fj3yk3oavflub5iw0kd/Max-Battle.apk?rlkey=xgtflzfu9h7nyb1ujmxuz91k6&e=1&st=n3od44zt&dl=1" 
+                id="download-app-link" 
+                class="purple-gradient-bg text-white font-bold py-3 px-8 rounded-full text-lg hover:shadow-lg hover:shadow-violet-400/30 transition-shadow inline-block glowing-btn"
+                download
+            >
+                Download Now
+            </a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="text-white focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
+            </nav>
+            <div id="mobile-menu" class="hidden md:hidden bg-black/90">
+                <a href="#" class="block py-3 px-6 text-sm text-gray-300 hover:bg-gray-800">Home</a>
+                <a href="#about" class="block py-3 px-6 text-sm text-gray-300 hover:bg-gray-800">About Us</a>
+                <a href="#download" class="block py-3 px-6 text-sm text-violet-400 hover:bg-gray-800">Download App</a>
+            </div>
+        </header>
+
+        <main>
+            <section class="hero-section h-screen flex items-center justify-center text-center text-white">
+                <div class="z-10 px-4">
+                    <h1 class="text-5xl md:text-7xl font-extrabold uppercase text-white mb-4 reveal">India's Biggest <span class="purple-gradient-text">Battle</span></h1>
+                    <p class="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-gray-300 reveal" style="transition-delay: 200ms;">Join the ultimate esports platform. Play tournaments, win rewards, and become a champion!</p>
+                    <a href="#download"  class="purple-gradient-bg text-white font-bold py-3 px-10 rounded-full text-lg hover:shadow-lg hover:shadow-violet-500/30 transition-shadow reveal" style="transition-delay: 400ms;">Join a Match</a>
+                    
+                </div>
+            </section>
+            
+            <section id="stats" class="bg-black/20 py-12">
+                <div class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                    <div class="reveal">
+                        <h3 class="text-4xl font-extrabold purple-gradient-text stat-number" data-target="500">0+</h3>
+                        <p class="text-gray-400 font-semibold mt-2">Total Players</p>
+                    </div>
+                    <div class="reveal" style="transition-delay: 200ms;">
+                        <h3 class="text-4xl font-extrabold purple-gradient-text stat-number" data-target="1000">0+</h3>
+                        <p class="text-gray-400 font-semibold mt-2">Winnings Paid (₹)</p>
+                    </div>
+                    <div class="reveal" style="transition-delay: 400ms;">
+                        <h3 class="text-4xl font-extrabold purple-gradient-text stat-number" data-target="50">0+</h3>
+                        <p class="text-gray-400 font-semibold mt-2">Matches Daily</p>
+                    </div>
+                </div>
+            </section>
+
+             
+            <section id="about" class="py-20 bg-[#0c0c0c]">
+                <div class="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center reveal">
+                    <div>
+                        <img src="images/maxBattlePoster.jpg" alt="About Free Fire Battle" class="rounded-lg shadow-2xl">
+                    </div>
+                    <div>
+                        <h2 class="text-4xl font-bold mb-4">About <span class="purple-gradient-text">Us</span></h2>
+                        <p class="text-gray-400 mb-4">Free Fire Battle is a premier esports platform dedicated to bringing competitive gaming to everyone. We host daily tournaments and matches for your favorite battle royale games, providing a fair, fun, and competitive environment for gamers of all skill levels.</p>
+                        <p class="text-gray-400">Our mission is to build the largest gaming community where players can thrive, improve their skills, and earn real rewards.</p>
+                    </div>
+                </div>
+            </section>
+            
+             <!-- <section id="gallery" class="py-20 bg-[#121212]">
+                <div class="container mx-auto px-6 text-center reveal">
+                    <h2 class="text-4xl font-bold mb-12">Our <span class="purple-gradient-text">Gallery</span></h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="relative group overflow-hidden rounded-lg shadow-lg">
+                             <img src="images/loot2.jpg" alt="Gallery Image 1" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                             <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                             </div>
+                        </div>
+                        <div class="relative group overflow-hidden rounded-lg shadow-lg">
+                             <img src="images/victory.jpg" alt="Gallery Image 2" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                             <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                 <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                             </div>
+                        </div>
+                        <div class="relative group overflow-hidden rounded-lg shadow-lg">
+                             <img src="images/Character.jpg" alt="Gallery Image 3" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                             <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                 <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                             </div>
+                        </div>
+                         <div class="relative group overflow-hidden rounded-lg shadow-lg">
+                             <img src="images/free.jpeg" alt="Gallery Image 4" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                              <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                 <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section> -->
+            
+             <section id="testimonials" class="py-20 bg-[#0c0c0c]">
+                <div class="container mx-auto px-6 text-center reveal">
+                    <h2 class="text-4xl font-bold mb-12">What Our <span class="purple-gradient-text">Players Say</span></h2>
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="bg-[#121212] p-6 rounded-lg border border-gray-800">
+                            <p class="text-gray-400 mb-4">"The best platform for daily tournaments. Payouts are instant and the competition is fierce!"</p>
+                            <p class="font-bold text-white">- Player123</p>
+                        </div>
+                        <div class="bg-[#121212] p-6 rounded-lg border border-gray-800">
+                            <p class="text-gray-400 mb-4">"I love the variety of matches available. The app is super smooth and easy to use."</p>
+                            <p class="font-bold text-white">- GamerGirl_99</p>
+                        </div>
+                         <div class="bg-[#121212] p-6 rounded-lg border border-gray-800">
+                            <p class="text-gray-400 mb-4">"Fair play is actually enforced here. Finally a platform I can trust."</p>
+                            <p class="font-bold text-white">- ProSniper</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Download App Section -->
+          <section id="download" class="py-20 bg-[#121212]">
+    <div class="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center reveal">
+        <div class="text-center md:text-left">
+            <h2 class="text-4xl font-bold mb-4">
+                Download <span class="purple-gradient-text">Our App</span>
+            </h2>
+            <p class="text-gray-400 mb-8">
+                Get the best experience on our mobile app. Join matches, track your stats, and withdraw winnings on the go.
+            </p>
+            <a 
+                href="/MaxBattle.apk" 
+                id="download-app-link" 
+                class="purple-gradient-bg text-white font-bold py-3 px-10 rounded-full text-lg hover:shadow-lg hover:shadow-violet-500/30 transition-shadow inline-block glowing-btn"
+                download
+            >
+                Download Now
+            </a>
+        </div>
+        <div class="flex justify-center">
+            <img src="images/Logo2.jpg" alt="App Screenshot" class="max-h-96 rounded-2xl shadow-2xl">
+        </div>
+    </div>
+</section>
+
+        </main>
+
+        <footer class="bg-black py-8 border-t border-gray-800">
+            <div class="container mx-auto px-6 text-center text-gray-500">
+                <div class="flex justify-center space-x-6 mb-6">
+                    <button id="fair-play-policy-btn" class="hover:text-violet-400 transition-colors">Fair Play Policy</button>
+                    <button id="return-policy-btn" class="hover:text-violet-400 transition-colors">Return Policy</button>
+                    <button id="terms-conditions-btn" class="hover:text-violet-400 transition-colors">Terms & Conditions</button>
+                </div>
+                <div class="flex justify-center space-x-6 mb-6">
+                    <a href="#" aria-label="Instagram" class="text-gray-500 hover:text-violet-400 transition-colors">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </a>
+                    <a href="#" aria-label="YouTube" class="text-gray-500 hover:text-violet-400 transition-colors">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                    </a>
+                </div>
+                <p>&copy; 2024 Max Battle. All Rights Reserved.</p>
+            </div>
+        </footer>
+        
+        <button id="floating-contact-btn" class="fixed bottom-6 right-6 purple-gradient-bg text-white p-4 rounded-full shadow-lg hover:scale-110 transition-transform z-40">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+        </button>
+    </div>
+    
+    <!-- Chatbot View (Initially hidden) -->
+    <div id="chatbot-page" class="hidden h-screen w-screen">
+        <div class="w-full h-full flex relative z-10">
+            <div id="sidebar" class="fixed top-0 left-0 h-full flex-col w-64 bg-black/90 backdrop-blur-sm p-2 border-r border-gray-800 z-20 md:relative md:flex md:z-auto -translate-x-full md:translate-x-0">
+                <div class="flex justify-between items-center mb-2">
+                    <button id="new-chat-btn" class="w-full text-left p-2.5 rounded-lg text-sm font-semibold bg-gray-800 hover:bg-gray-700 transition-colors">+ New Chat</button>
+                    <button id="close-sidebar-btn" class="md:hidden p-2 text-gray-400 hover:text-white"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                </div>
+                <div class="flex-1 overflow-y-auto">
+                    <div class="p-2.5 rounded-lg text-sm text-gray-400 hover:bg-gray-800 cursor-pointer truncate">Tournament Rules Question</div>
+                </div>
+                <div class="p-2 border-t border-gray-800">
+                     <button id="back-to-home-btn" class="w-full text-left p-2.5 rounded-lg text-sm text-gray-300 hover:bg-gray-800 flex items-center space-x-2 mb-1"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg><span>Back to Home</span></button>
+                    <button id="rules-btn" class="w-full text-left p-2.5 rounded-lg text-sm text-gray-300 hover:bg-gray-800 flex items-center space-x-2 mb-1"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg><span>Tournament Rules</span></button>
+                    <button id="clear-chat-btn" class="w-full text-left p-2.5 rounded-lg text-sm text-gray-300 hover:bg-gray-800 flex items-center space-x-2"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg><span>Clear Chat</span></button>
+                </div>
+            </div>
+            <div class="flex-1 flex flex-col h-full bg-[#121212]">
+                <div class="p-3 border-b border-gray-800 flex items-center justify-between md:justify-center">
+                    <button id="open-sidebar-btn" class="md:hidden p-2 text-gray-400 hover:text-white"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg></button>
+                    <h1 class="text-2xl font-bold text-white">Tournament <span class="purple-gradient-text">AI</span></h1>
+                    <div class="w-8 md:hidden"></div>
+                </div>
+                <div id="chat-messages" class="flex-1 p-4 md:p-6 space-y-8 overflow-y-auto"></div>
+                <div id="input-area" class="p-4 bg-[#121212]">
+                    <div class="max-w-3xl mx-auto">
+                        <div id="suggested-questions-container" class="flex flex-wrap justify-center gap-2 mb-3"></div>
+                        <div id="input-wrapper" class="relative bg-[#212121] rounded-lg border border-gray-700">
+                            <textarea id="user-input" placeholder="Ask anything..." class="w-full bg-transparent text-gray-200 placeholder-gray-500 p-4 pr-20 resize-none focus:outline-none" rows="1"></textarea>
+                            <button id="send-btn" class="absolute right-3 top-1/2 -translate-y-1/2 bg-violet-600 hover:bg-violet-700 text-white p-2 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:bg-gray-600 disabled:cursor-not-allowed"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 14L21 3M21 3L18.5 20.5L14 16L10 14ZM21 3L10 14Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                            <button id="stop-btn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-all duration-300"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M6 6H18V18H6V6Z"/></svg></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Policy Modals -->
+    <div id="policy-modal-container">
+        <div id="rules-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-xl max-w-2xl w-full p-6 relative max-h-[80vh] overflow-y-auto">
+                <h2 class="text-2xl font-bold text-violet-400 mb-4">Tournament Rules</h2>
+                <div class="prose prose-invert max-w-none text-gray-300"><ul><li>Only players aged 18 and above are allowed to participate.</li><li>Hacking, cheating, or using any third-party software is strictly prohibited.</li><li>Attacking bots is forbidden. Points are only awarded for killing real players.</li><li>Be respectful to all players and staff. No toxic behavior or spamming in chat.</li><li>All decisions by the tournament organizers are final.</li></ul></div>
+                <button class="close-modal-btn absolute top-4 right-4 text-gray-400 hover:text-white"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
+        </div>
+        <div id="fair-play-policy-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-xl max-w-2xl w-full p-6 relative max-h-[80vh] overflow-y-auto">
+                <h2 class="text-2xl font-bold text-violet-400 mb-4">Fair Play Policy</h2>
+                <div class="prose prose-invert max-w-none text-gray-300">
+                    <p>Max Battle is committed to fostering a fair and competitive gaming environment. We have a zero-tolerance policy towards any form of cheating.</p>
+                    <h4>Prohibited Actions:</h4>
+                    <ul>
+                        <li>Using third-party software, including hacks, mods, or scripts to gain an unfair advantage.</li>
+                        <li>Exploiting in-game bugs or glitches for personal gain.</li>
+                        <li>Colluding with other players or teams to fix match outcomes.</li>
+                        <li>Account sharing or playing on another user's account.</li>
+                    </ul>
+                    <h4>Consequences:</h4>
+                    <p>Any player found violating our Fair Play Policy will face immediate and severe penalties, which may include a temporary or permanent ban from the platform, forfeiture of winnings, and disqualification from all ongoing and future tournaments.</p>
+                </div>
+                <button class="close-modal-btn absolute top-4 right-4 text-gray-400 hover:text-white"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
+        </div>
+        <div id="return-policy-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+             <div class="bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-xl max-w-2xl w-full p-6 relative max-h-[80vh] overflow-y-auto">
+                <h2 class="text-2xl font-bold text-violet-400 mb-4">Return, Refund and Cancellation Policy</h2>
+                 <div class="prose prose-invert max-w-none text-gray-300">
+                    <p>Our focus is complete customer satisfaction. In the event, that you are displeased with the services provided, we will refund back the money, provided the reasons are genuine and proved after investigation.</p>
+                    <h4>Cancellation Policy</h4>
+                    <p>A user can cancel a particular match/tournament any time up to 1 hour before the match starts. A user cannot cancel a match if the match is scheduled to start in less than 1 hour. In case of a valid cancellation, the entry fee will be refunded to your wallet.</p>
+                    <h4>Refund Policy</h4>
+                    <p>We will try our best to create a suitable design concepts for our clients. In case any client is not completely satisfied with our products we can provide a refund. If paid by credit card, refunds will be issued to the original credit card provided at the time of purchase and in case of payment gateway name payments refund will be made to the same account.</p>
+                </div>
+                <button class="close-modal-btn absolute top-4 right-4 text-gray-400 hover:text-white"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
+        </div>
+         <div id="terms-conditions-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+             <div class="bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-xl max-w-2xl w-full p-6 relative max-h-[80vh] overflow-y-auto">
+                <h2 class="text-2xl font-bold text-violet-400 mb-4">Terms & Conditions</h2>
+                <div class="prose prose-invert max-w-none text-gray-300">
+                    <p>By using the Free Fire Battle platform, you agree to these terms and conditions.</p>
+                    <ol>
+                        <li><strong>User Account:</strong> You are responsible for maintaining the confidentiality of your account and password.</li>
+                        <li><strong>Eligibility:</strong> You must be 18 years or older to participate in any paid tournaments.</li>
+                        <li><strong>Code of Conduct:</strong> You agree not to engage in any toxic, abusive, or harmful behavior towards other users or staff.</li>
+                        <li><strong>Winnings:</strong> Winnings are subject to verification and will be paid out according to the platform's policies. We reserve the right to withhold winnings in cases of suspected fraud or policy violations.</li>
+                        <li><strong>Limitation of Liability:</strong> Free Fire Battle is not responsible for any losses, damages, or issues arising from your use of the platform.</li>
+                    </ol>
+                </div>
+                <button class="close-modal-btn absolute top-4 right-4 text-gray-400 hover:text-white"><svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+             // --- Start of Landing Page Logic ---
+            const landingPage = document.getElementById('landing-page');
+            const chatbotPage = document.getElementById('chatbot-page');
+            const contactUsBtn = document.getElementById('floating-contact-btn');
+            const backToHomeBtn = document.getElementById('back-to-home-btn');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            function showChatbot() {
+                landingPage.classList.add('hidden');
+                chatbotPage.classList.remove('hidden');
+                mobileMenu.classList.add('hidden');
+            }
+
+            function showLandingPage() {
+                chatbotPage.classList.add('hidden');
+                landingPage.classList.remove('hidden');
+            }
+            
+            contactUsBtn.addEventListener('click', showChatbot);
+            backToHomeBtn.addEventListener('click', showLandingPage);
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // Policy Modals Logic
+            const policyButtons = {
+                'fair-play-policy-btn': 'fair-play-policy-modal',
+                'return-policy-btn': 'return-policy-modal',
+                'terms-conditions-btn': 'terms-conditions-modal',
+                'rules-btn': 'rules-modal', // For chatbot sidebar
+            };
+
+            document.querySelectorAll('.close-modal-btn').forEach(btn => {
+                btn.onclick = () => {
+                    btn.closest('.fixed').classList.add('hidden');
+                };
+            });
+            
+            Object.keys(policyButtons).forEach(btnId => {
+                document.getElementById(btnId)?.addEventListener('click', () => {
+                    const modalId = policyButtons[btnId];
+                    document.getElementById(modalId)?.classList.remove('hidden');
+                });
+            });
+
+
+            // Intersection Observer for scroll animations
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.reveal').forEach(el => {
+                observer.observe(el);
+            });
+            
+            // Number counting animation
+            const statsObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const target = entry.target;
+                        const finalValue = parseInt(target.dataset.target, 10);
+                        let currentValue = 0;
+                        const increment = Math.ceil(finalValue / 100);
+
+                        const updateCount = () => {
+                            if (currentValue < finalValue) {
+                                currentValue += increment;
+                                if (currentValue > finalValue) currentValue = finalValue;
+                                target.textContent = currentValue.toLocaleString() + '+';
+                                requestAnimationFrame(updateCount);
+                            } else {
+                                target.textContent = finalValue.toLocaleString() + '+';
+                            }
+                        };
+                        updateCount();
+                        observer.unobserve(target);
+                    }
+                });
+            }, { threshold: 0.5 });
+            
+            document.querySelectorAll('.stat-number').forEach(stat => {
+                statsObserver.observe(stat);
+            });
+
+            // Countdown Timer Logic
+            document.querySelectorAll('.countdown').forEach(timer => {
+                let timeLeft = parseInt(timer.dataset.time, 10);
+                setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft < 0) timeLeft = 0;
+                    const hours = Math.floor(timeLeft / 3600).toString().padStart(2, '0');
+                    const minutes = Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0');
+                    const seconds = (timeLeft % 60).toString().padStart(2, '0');
+                    timer.textContent = `${hours}:${minutes}:${seconds}`;
+                }, 1000);
+            });
+
+
+            // --- Start of Chatbot Logic ---
+            const chatMessages = document.getElementById('chat-messages');
+            const userInput = document.getElementById('user-input');
+            const sendBtn = document.getElementById('send-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            const newChatBtn = document.getElementById('new-chat-btn');
+            const clearChatBtn = document.getElementById('clear-chat-btn');
+            const sidebar = document.getElementById('sidebar');
+            const openSidebarBtn = document.getElementById('open-sidebar-btn');
+            const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+            const suggestedQuestionsContainer = document.getElementById('suggested-questions-container');
+            
+            let isThinking = false;
+            let chatHistory = [];
+            let firstMessageSent = false;
+            let abortController = new AbortController();
+
+            function getCurrentDateTime() {
+                return new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+            }
+
+            const systemPrompt = `
+                You are 'Tournament AI', a helpful and friendly AI assistant for a Free Fire gaming tournament.
+                The current date and time in India is ${getCurrentDateTime()}. Use this for any time-related questions.
+                Your primary job is to answer questions about the tournament. If asked something else, answer as a general AI assistant.
+                
+                Key Tournament Information & Rules:
+                - How to select a slot: To select a slot, you must first choose a game mode like Solo, Duo, or Squad. After that, click 'Join', select any available slot, and complete the payment. Once your slot is confirmed, you will see a timer for the match start time. You will receive a notification with the room ID and password before the match begins.
+                - Kicked out: A player is kicked for attacking a bot. It is forbidden.
+                - Points: Points are for killing real players, not bots.
+                - Schedule: The next match is tonight at 8 PM. Check the website for the full schedule.
+                - General Rules: No hacking, no cheating, be respectful.
+
+                FORCEFUL INSTRUCTION: Your primary language detection task is to differentiate between English and Hinglish (a mix of Hindi words in Latin script, e.g., 'kaise ho', 'slot select kaise karein'). If the user's query is in Hinglish, your response ABSOLUTELY MUST be in Hinglish. If it's in English, respond in English. Do not mix languages unless the user does. Be conversational.
+            `;
+            const initialModelResponse = "Okay, I understand. I am Tournament AI. I will give short, direct answers and automatically reply in the user's language (English or Hinglish), using Markdown for clear formatting. I'm ready.";
+
+            function initializeChat() {
+                chatHistory = [
+                    { role: "user", parts: [{ text: systemPrompt }] },
+                    { role: "model", parts: [{ text: initialModelResponse }] }
+                ];
+                chatMessages.innerHTML = '';
+                firstMessageSent = false;
+                showSuggestedQuestions();
+                const welcomeMessage = "Hi there! I'm your AI assistant for the tournament. Ask me anything or try a suggestion below.";
+                addMessage(welcomeMessage, 'bot');
+            }
+            
+            function showSuggestedQuestions() {
+                suggestedQuestionsContainer.innerHTML = '';
+                const questions = ["What are the rules?", "How do I select a slot?", "How do I get points?"];
+                questions.forEach(q => {
+                    const button = document.createElement('button');
+                    button.textContent = q;
+                    button.className = 'bg-gray-700 text-gray-300 text-sm px-3 py-1 rounded-full hover:bg-gray-600 transition-colors';
+                    button.onclick = () => {
+                        handleUserInput(q);
+                    };
+                    suggestedQuestionsContainer.appendChild(button);
+                });
+                suggestedQuestionsContainer.style.display = 'flex';
+            }
+
+            function hideSuggestedQuestions() {
+                suggestedQuestionsContainer.style.display = 'none';
+            }
+
+            function clearChat() {
+                 initializeChat();
+                 closeSidebar();
+            }
+            
+            function openSidebar() {
+                sidebar.classList.remove('-translate-x-full');
+            }
+
+            function closeSidebar() {
+                sidebar.classList.add('-translate-x-full');
+            }
+
+            function addMessage(message, sender, thinking = false) {
+                const messageId = `msg-${Date.now()}`;
+                
+                if (sender === 'user') {
+                    const messageElement = document.createElement('div');
+                    messageElement.id = messageId;
+                    messageElement.classList.add('flex', 'justify-end', 'user-message');
+                    const sanitizedMessage = message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    messageElement.innerHTML = `<div class="bg-[#212121] p-3 rounded-lg max-w-xl prose text-white">${sanitizedMessage}</div>`;
+                    chatMessages.appendChild(messageElement);
+                } else { // Bot
+                    const messageElement = document.createElement('div');
+                    messageElement.id = messageId;
+                    messageElement.classList.add('flex', 'items-start', 'space-x-4', 'relative', 'group');
+                    
+                    let contentHTML;
+                    if (thinking) {
+                        contentHTML = `<div class="flex space-x-1 p-3"><div class="w-2 h-2 bg-gray-400 rounded-full thinking-dot"></div><div class="w-2 h-2 bg-gray-400 rounded-full thinking-dot"></div><div class="w-2 h-2 bg-gray-400 rounded-full thinking-dot"></div></div>`;
+                    } else {
+                        contentHTML = marked.parse(message, { sanitize: true });
+                    }
+                    
+                    messageElement.innerHTML = `
+                        <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center bg-violet-600/80 border border-violet-500">
+                           <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 16L10 19L17 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 12L10 15L17 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </div>
+                        <div class="flex-1 min-w-0 prose text-gray-300 prose-sm md:prose-base max-w-full prose-container">${contentHTML}</div>
+                    `;
+                    
+                    if (!thinking) {
+                         const copyBtn = document.createElement('button');
+                         copyBtn.className = 'copy-btn';
+                         copyBtn.innerHTML = `<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 8.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v8.25A2.25 2.25 0 006 16.5h2.25m8.25-8.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-7.5A2.25 2.25 0 018.25 18v-1.5m8.25-8.25h-6.75" /></svg>`;
+                         copyBtn.onclick = () => copyToClipboard(message, copyBtn);
+                         messageElement.appendChild(copyBtn);
+                    }
+                    chatMessages.appendChild(messageElement);
+                }
+                
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                return messageId;
+            }
+
+            function copyToClipboard(text, button) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalIcon = button.innerHTML;
+                    button.innerHTML = `<svg class="w-4 h-4 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>`;
+                    const tooltip = document.createElement('span');
+                    tooltip.textContent = 'Copied!';
+                    tooltip.className = 'absolute -top-8 right-0 bg-black text-white text-xs px-2 py-1 rounded';
+                    button.appendChild(tooltip);
+                    setTimeout(() => {
+                         button.innerHTML = originalIcon;
+                    }, 2000);
+                }).catch(err => console.error('Failed to copy: ', err));
+            }
+
+
+            function updateMessage(id, newText) {
+                const messageElement = document.getElementById(id);
+                if (messageElement) {
+                    const proseContainer = messageElement.querySelector('.prose-container');
+                    if (proseContainer) {
+                        proseContainer.innerHTML = marked.parse(newText, { sanitize: true });
+                    }
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = 'copy-btn';
+                    copyBtn.innerHTML = `<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 8.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v8.25A2.25 2.25 0 006 16.5h2.25m8.25-8.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-7.5A2.25 2.25 0 018.25 18v-1.5m8.25-8.25h-6.75" /></svg>`;
+                    copyBtn.onclick = () => copyToClipboard(newText, copyBtn);
+                    messageElement.appendChild(copyBtn);
+                }
+            }
+            
+            function showStopButton(show) {
+                stopBtn.classList.toggle('hidden', !show);
+                sendBtn.classList.toggle('hidden', show);
+            }
+            
+            async function getAIResponse(userQuery) {
+                isThinking = true;
+                showStopButton(true);
+                abortController = new AbortController();
+                
+                const thinkingMsgId = addMessage('...', 'bot', true);
+                
+                chatHistory.push({ role: "user", parts: [{ text: userQuery }] });
+
+                try {
+                    const payload = { contents: chatHistory };
+                    const apiKey = "AIzaSyD-s_o9yNTvWsB1uE_b4eA8EGHtAhVjzYw";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                        signal: abortController.signal
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        const errorDetails = result.error ? JSON.stringify(result.error) : 'The API returned an error.';
+                        throw new Error(`API Error: ${response.status}. Details: ${errorDetails}`);
+                    }
+                    
+                    let text = "Sorry, I encountered an issue. Please try again.";
+                    if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
+                        text = result.candidates[0].content.parts[0].text;
+                    }
+
+                    updateMessage(thinkingMsgId, text);
+                    chatHistory.push({ role: "model", parts: [{ text: text }] });
+
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        updateMessage(thinkingMsgId, "Generation stopped.");
+                    } else {
+                        console.error("Full error fetching AI response:", error);
+                        updateMessage(thinkingMsgId, "There was an error connecting to the AI. Please try again later.");
+                    }
+                } finally {
+                    isThinking = false;
+                    showStopButton(false);
+                    userInput.focus();
+                }
+            }
+
+            function handleUserInput(queryOverride) {
+                const query = typeof queryOverride === 'string' ? queryOverride : userInput.value.trim();
+                if (query === '' || isThinking) return;
+                
+                hideSuggestedQuestions();
+
+                addMessage(query, 'user');
+                getAIResponse(query);
+                userInput.value = '';
+                userInput.style.height = 'auto';
+            }
+
+            userInput.addEventListener('input', () => {
+                userInput.style.height = 'auto';
+                userInput.style.height = (userInput.scrollHeight) + 'px';
+            });
+            sendBtn.addEventListener('click', handleUserInput);
+            stopBtn.addEventListener('click', () => {
+                abortController.abort();
+            });
+            userInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    handleUserInput();
+                }
+            });
+
+            userInput.addEventListener('focus', () => {
+                setTimeout(() => {
+                    const inputArea = document.getElementById('input-area');
+                    inputArea.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }, 300);
+            });
+
+            newChatBtn.addEventListener('click', clearChat);
+            clearChatBtn.addEventListener('click', clearChat);
+            openSidebarBtn.addEventListener('click', openSidebar);
+            closeSidebarBtn.addEventListener('click', closeSidebar);
+            document.getElementById('rules-btn').addEventListener('click', () => {
+                document.getElementById('rules-modal').classList.remove('hidden');
+                closeSidebar();
+            });
+            
+
+            initializeChat();
+        });
+    </script>
+</body>
+</html>
